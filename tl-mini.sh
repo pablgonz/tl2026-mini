@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 # tl-mini.sh -- TeX Live portable minimo (con los paquetes de la lista) y veraPDF.
-# Uso:   bash tl-mini.sh LISTA_DE_PAQUETES
-# Ej.:   bash tl-mini.sh tl_packages
+# Uso:   bash tl-mini.sh [LISTA_DE_PAQUETES]
+# Sin argumento usa tl_packages (junto al script), la union de las listas de
+# spanish-mathml-intent, scontents y enumext.
 # Deja en la carpeta actual: tl-mini.tar.xz.part-*, verapdf.tar.xz y SHA256SUMS
 set -euo pipefail
 
-[ $# -eq 1 ] && [ -f "$1" ] || { echo "Uso: bash tl-mini.sh LISTA_DE_PAQUETES" >&2; exit 1; }
-LIST="$(realpath "$1")"
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LIST="$(realpath "${1:-$HERE/tl_packages}")"
+[ -f "$LIST" ] || { echo "No existe la lista de paquetes: $LIST" >&2; exit 1; }
 OUT="$PWD"
 MIRROR="https://mirror.ctan.org/systems/texlive/tlnet"
 VERA="https://raw.githubusercontent.com/pablgonz/rnv-vera-pdf-cli/main/install-verapdf.sh"
