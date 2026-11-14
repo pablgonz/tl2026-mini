@@ -183,3 +183,7 @@ xkeyval
 xstring
 zapfding
 xetex-pstricks
+hyperxmp
+ifmtarg
+oberdiek
+footnotehyper
