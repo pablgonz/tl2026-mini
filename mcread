@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# mcread: atajo para examples/mathcatread.rs (compila si hace falta y pasa las opciones como variables de entorno).
+usage() { cat <<'U'
+Uso: ./mcread [opciones] ['<math>...</math>' | -f archivo]     (sin MathML ni -f: lee la entrada estándar)
+  -l idioma     es, en, ...                         (por defecto es)
+  -s estilo     ClearSpeak | SimpleSpeak | LiteralSpeak
+  -v verbosidad Terse | Medium | Verbose
+  -n "cmds"     navegar, p. ej. -n "ZoomIn MoveNext ZoomOut"
+  -b código     braille: UEB, Nemeth, CMU, ...
+  -o            resumen (overview)
+  -c            MathML canonicalizado
+  -p "A=b;C=d"  otras preferencias de MathCAT
+  -f archivo    una fórmula por línea
+  -P archivo.pdf  PDF etiquetado: lee todas sus fórmulas (necesita show-pdf-tags de TeX Live 2026)
+Ejemplos:
+  ./mcread '<math><mn>1</mn><mtext>º</mtext></math>'
+  ./mcread -l en -n "ZoomIn MoveNext" '<math><mfrac><mi>a</mi><mi>b</mi></mfrac></math>'
+U
+}
+cd "$(dirname "$0")" || exit 1
+file=""; pdf=""
+while getopts "l:s:v:n:b:p:f:P:och" o; do case $o in
+  l) export LANG_MC=$OPTARG;; s) export STYLE=$OPTARG;; v) export VERBOSITY=$OPTARG;;
+  n) export NAV=$OPTARG;; b) export BRAILLE=$OPTARG;; p) export PREFS=$OPTARG;;
+  o) export OVERVIEW=1;; c) export CANON=1;; f) file=$OPTARG;; P) pdf=$OPTARG;; *) usage; exit 0;; esac; done
+shift $((OPTIND-1))
+cargo build -q --example mathcatread 2>&1 | grep -E "^error" -A5 && exit 1
+bin=target/debug/examples/mathcatread
+if [ -n "$pdf" ]; then ./mcpdf.py "$pdf" | "$bin"
+elif [ -n "$file" ]; then "$bin" < "$file"
+elif [ $# -gt 0 ]; then printf '%s\n' "$@" | "$bin"
+else "$bin"; fi
